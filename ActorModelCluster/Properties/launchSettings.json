@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ActorModelCluster": {
+      "commandName": "Project",
+      "commandLineArgs": "localhost 1111"
+    }
+  }
+}

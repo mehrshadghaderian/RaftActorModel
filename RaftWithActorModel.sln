@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftWithActorModel", "RaftWithActorModel\RaftWithActorModel.csproj", "{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActorModelCluster", "ActorModelCluster\ActorModelCluster.csproj", "{30F86175-4A4B-42BF-BEAC-3DF996402D0D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {55319EB6-4399-42FB-B13D-EA68FD342687}
+	EndGlobalSection
+EndGlobal
