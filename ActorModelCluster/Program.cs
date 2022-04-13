@@ -1,52 +1,20 @@
 ﻿using Akka.Configuration;
-using System;
-using System.Linq;
-using System.IO;
 using Akka.Actor;
-using Serilog;
 using log4net.Config;
 using System.Reflection;
 using log4net;
 
-//string path = AppContext.BaseDirectory; 
-//Log.Logger = new LoggerConfiguration()
-//       .MinimumLevel.Debug()
-//       .WriteTo.LiterateConsole()
-//       .WriteTo.RollingFile(path + "\\logs\\{Date}.log")
-//       .CreateLogger();
 var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
 XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
-var _log4net = log4net.LogManager.GetLogger(typeof(Program));
-_log4net.Info("Hello Logging World");
-var actorSystemName = "raftActorSystem"; 
-string ip = args[0];
-string port = args[1];
+var _log4net = log4net.LogManager.GetLogger(typeof(Program)); 
 
-var hocanConfig = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "hocan.configfile")).Replace("$ip", ip).Replace("$port", port));
+var hocanConfig = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "hocan.configfile")).Replace("$ip", args[0]).Replace("$port", args[1]));
+var actorSystemName = "raftActorSystem";
+actorSystemName = hocanConfig.GetConfig("cluster").GetString("actorsystemname", actorSystemName);
  
-
-var clusterConfig = hocanConfig.GetConfig("cluster");
-if (clusterConfig != null)
-{
-    actorSystemName = clusterConfig.GetString("actorsystemname", actorSystemName);
-}
-
-var selfAddress = string.Format("akka.tcp://{0}@{1}:{2}", actorSystemName, ip, port);
-var seedsNode = hocanConfig.GetStringList("akka.cluster.seed-nodes");
-if (!seedsNode.Contains(selfAddress))
-{
-    seedsNode.Add(selfAddress);
-}
-//Log.Information("seed addresses are {0}", string.Join(",", string.Join(",", seedsNode.Select(s => "\"" + s + "\""))));
+string? selfAddress = string.Format("akka.tcp://{0}@{1}:{2}", "raftActorSystem", args[0], args[1]);
+IList<string>? seedsNode = hocanConfig.GetStringList("akka.cluster.seed-nodes");
+seedsNode.Add(string.Format("akka.tcp://{0}@{1}:{2}", "raftActorSystem", args[0], args[1]));
 _log4net.Info("seed addresses are {0}" + string.Join(",", string.Join(",", seedsNode.Select(s => "\"" + s + "\""))));
-
-//var injectedClusterConfigString = "akka.cluster.seed-nodes = [" + string.Join(",", seedsNode.Select(s => "\"" + s + "\"")) + "]";
-
-//var finalConfig = ConfigurationFactory.ParseString(injectedClusterConfigString)
-//    .WithFallback(hocanConfig);
-
-//var system = ActorSystem.Create(actorSystemName, finalConfig);
-ActorSystem.Create(actorSystemName, ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [" + string.Join(",", seedsNode.Select(s => "\"" + s + "\"")) + "]")
-    .WithFallback(hocanConfig));
-
+ActorSystem.Create("raftActorSystem", ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [" + string.Join(",", seedsNode.Select(s => "\"" + s + "\"")) + "]").WithFallback(hocanConfig));
 Console.ReadLine();
