@@ -28,7 +28,7 @@
 		auto-down-unreachable-after = 10s
 		log-info = off
         seed-nodes = [
-        "akka.tcp://raftsystem@localhost:1111"]
+        "akka.tcp://raftActorSystem@localhost:5050"]
 		roles = ["heartbeat"]
     }
 }
