@@ -2,38 +2,38 @@
 internal class NodeManager
 {
     static IActorRef _heartbeat;
-    static IActorRef _electionCycle;
+    static IActorRef _selectionCycle;
     static IActorRef _candidate;
     static IActorRef _follower;
     static IActorRef _leader;
     static IActorRef _statusBroadcast;
 
-    public static void SetStatusBroadcast(IActorRef statusBroadcast)
+    public static void CreateActorStatusBroadcast(IActorRef statusBroadcast)
     {
         _statusBroadcast = statusBroadcast;
     }
 
-    public static void SetHeartbeat(IActorRef heartbeat)
+    public static void CreateActorHeartbeat(IActorRef heartbeat)
     {
         _heartbeat = heartbeat;
     }
 
-    public static void SetElection(IActorRef electionCycle)
+    public static void CreateActorSelection(IActorRef electionCycle)
     {
-        _electionCycle = electionCycle;
+        _selectionCycle = electionCycle;
     }
 
-    public static void SetCandidate(IActorRef candidate)
+    public static void CreateActorCandidate(IActorRef candidate)
     {
         _candidate = candidate;
     }
 
-    public static void SetLeader(IActorRef leader)
+    public static void CreateActorLeader(IActorRef leader)
     {
         _leader = leader;
     }
 
-    public static void SetFollower(IActorRef follower)
+    public static void CreateActorFollower(IActorRef follower)
     {
         _follower = follower;
     }
@@ -48,24 +48,24 @@ internal class NodeManager
         _heartbeat?.Tell(new RunHeartbeat(false));
     }
 
-    public static void StartElectionTimer()
+    public static void StartSelectionTimer()
     {
-        _electionCycle?.Tell(new RunElectionTime(true));
+        _selectionCycle?.Tell(new RunSelectionTime(true));
     }
 
-    public static void StopElectionTimer()
+    public static void StopSelectionTimer()
     {
-        _electionCycle?.Tell(new RunElectionTime(false));
+        _selectionCycle?.Tell(new RunSelectionTime(false));
     }
 
-    public static void ResetElectionTimer()
+    public static void ResetSelectionTimer()
     {
-        _electionCycle?.Tell(new ResetElection());
+        _selectionCycle?.Tell(new ResetSelection());
     }
 
-    public static void AskForVote(int term)
+    public static void RequestForVote  (int term)
     {
-        _candidate?.Tell(new AskForVote(term));
+        _candidate?.Tell(new RequestForVote  (term));
     }
 
     public static void StartWaitForVote()
@@ -86,11 +86,11 @@ internal class NodeManager
         _heartbeat.Tell(new SendHeartbeatResponse(heartbeatId, senderId, senderPath, term, logIndex));
     }
 
-    public static void Stop(TimeSpan timeout)
+    public static void Exit(TimeSpan timeout)
     {
          SendTerminateSignal();
-        _electionCycle?.GracefulStop(timeout);
-        _electionCycle = null;
+        _selectionCycle?.GracefulStop(timeout);
+        _selectionCycle = null;
         _heartbeat?.GracefulStop(timeout);
         _heartbeat = null;
         _candidate?.GracefulStop(timeout);

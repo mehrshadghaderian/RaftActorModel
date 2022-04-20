@@ -6,11 +6,11 @@ using Serilog;
 
 public class Actor_Heartbeat : ReceiveActor
 {
-    private const int HEARTBEAT_INTERVAL_MS = 1000;
+    private const int heartbeat_periodtimemilisecound = 1000;
 
     private bool _joinedCluster;
     private ICancelable _heartbeatTask;
-    private int _membersCount;
+    private int _nodesCount;
     private bool _heartbeatStarted = false;
 
     protected Cluster cluster = Cluster.Get(Context.System);
@@ -57,21 +57,21 @@ public class Actor_Heartbeat : ReceiveActor
                 RaftEvents.JoinedClusterEvent?.Invoke();
             }
 
-            var members = cluster.State.Members.Where(m => (m.Status == MemberStatus.Joining
+            var nodes = cluster.State.Members.Where(m => (m.Status == MemberStatus.Joining
                 || m.Status == MemberStatus.Up) && m.Roles.Contains("heartbeat"));
 
-            int membersCount = members.Count();
-            if (_membersCount != membersCount)
+            int nodesCount = nodes.Count();
+            if (_nodesCount != nodesCount)
             {
-                _membersCount = membersCount;
-                Log.Information("{0}", $"{membersCount} members in cluster.");
+                _nodesCount = nodesCount;
+                Log.Information("{0}", $"{nodesCount} nodes in  this cluster.");
 
-                foreach (var m in members)
+                foreach (var m in nodes)
                 {
-                    Log.Information("{0}", $"Member {m.UniqueAddress.Uid} with roles {string.Join(",", m.Roles)} is {m.Status}");
+                    Log.Information("{0}", $"Nodes {m.UniqueAddress.Uid} with roles {string.Join(",", m.Roles)} is {m.Status}");
                 }
 
-                RaftEvents.MemberChangedEvent?.Invoke(_membersCount);
+                RaftEvents.NodeChangedEvent?.Invoke(_nodesCount);
             }
         });
 
@@ -81,9 +81,9 @@ public class Actor_Heartbeat : ReceiveActor
                 if (!_heartbeatStarted)
                 {
                     _heartbeatStarted = true;
-                    Log.Information("{0}", "Heartbeat Start");
+                    Log.Information("{0}", " Start heartbeat time ");
                     _heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
-                    TimeSpan.FromMilliseconds(HEARTBEAT_INTERVAL_MS), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
+                    TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
                 }
             }
             else
@@ -91,7 +91,7 @@ public class Actor_Heartbeat : ReceiveActor
                 if (_heartbeatStarted)
                 {
                     _heartbeatStarted = false;
-                    Log.Information("{0}", "Heartbeat Stop");
+                    Log.Information("{0}", "Stop heartbeat time ");
                     _heartbeatTask?.Cancel();
                 }
             }

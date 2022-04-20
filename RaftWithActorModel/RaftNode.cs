@@ -13,8 +13,8 @@ public class RaftNode
     public static int Term { get; private set; }
     public static int ClusterUid { get; private set; }
     public static int CurrentLeaderId { get; private set; }
-    public static int Election_ExpiredTime { get; set; }
-    public static int ElectionDuration { get; set; }
+    public static int Selection_ExpiredTime { get; set; }
+    public static int SelectionDuration { get; set; }
     public static List<LogEntry> LogEntries { get; private set; }
     public static int LogIndex { get { return LogEntries.Count; } }
 
@@ -24,7 +24,7 @@ public class RaftNode
         get { return _role; }
         set
         {
-            Log.Information("{0}", $"Role is now {_role.ToString()}");
+            Log.Information("{0}", $"node role is now {_role.ToString()}");
             _role = value;
         }
     }
@@ -37,23 +37,23 @@ public class RaftNode
     {
         ProcessId = Process.GetCurrentProcess().Id;
         ClusterUid = clusterUniqueId;
-        Log.Information("{0}", $"My Uid is {ClusterUid}");
+        Log.Information("{0}", $"node ClusterUid is {ClusterUid}");
         LogEntries = new List<LogEntry>();
 
-        RaftEvents.ElectionDurationChangedEvent = dur => ElectionDuration = dur;
-        RaftEvents.ElectionExpiredTimeEvent = el => Election_ExpiredTime = el;
-        RaftEvents.ElectionTimeoutEvent = () => {
+        RaftEvents.SelectionDurationChangedEvent = dur => SelectionDuration = dur;
+        RaftEvents.SelectionExpiredTimeEvent = el => Selection_ExpiredTime = el;
+        RaftEvents.SelectionTimeoutEvent = () => {
             //step up as candidate
-            //ask for vote
+            //Request for vote
             if (Role == Roles.Follower)
             {
                 Role = Roles.Candidate;
                 Term++;
                 Votes = 0;
 
-                Log.Information("{0}", $"Starting election for term {Term}");
-                NodeManager.StopElectionTimer();
-                NodeManager.AskForVote(Term);
+                Log.Information("{0}", $"Starting selection for term {Term}");
+                NodeManager.StopSelectionTimer();
+                NodeManager.RequestForVote  (Term);
                 NodeManager.StartWaitForVote();
             }
         };
@@ -70,7 +70,7 @@ public class RaftNode
             Log.Information("{0}", $"Got {Votes}/{Majority} votes for term {term} from {uid}");
             if (Votes >= Majority)
             {
-                Log.Information("{0}", "Elected!");
+                Log.Information("{0}", "Selected!");
                 Role = Roles.Leader;
                 CurrentLeaderId = ClusterUid;
                 NodeManager.StopWaitForVote();
@@ -79,9 +79,9 @@ public class RaftNode
         };
 
         RaftEvents.HeartbeatEvent = (senderpath, hb) => {
-            //resets election time
+            //resets selection time
             //otherwise becomes candidate and send request for votes         
-            NodeManager.ResetElectionTimer();
+            NodeManager.ResetSelectionTimer();
 
             //if heartbeat has term equal or bigger than self, then step down
             if (hb.Term >= Term)
@@ -92,12 +92,12 @@ public class RaftNode
                     Log.Information("{0}", "Stepping down");
                     Role = Roles.Follower;
                     NodeManager.StopHeartbeat();
-                    NodeManager.StartElectionTimer();
+                    NodeManager.StartSelectionTimer();
                 }
 
                 if (hb.Term != Term)
                 {
-                    Log.Information("{0}", $"Updating from term {Term} to {hb.Term}");
+                    Log.Information("{0}", $"Changing from term {Term} to {hb.Term}");
                     Term = hb.Term;
                 }
             }
@@ -113,8 +113,8 @@ public class RaftNode
         RaftEvents.JoinedClusterEvent = () => {
             if (Role != Roles.Leader)
             {
-                Log.Information("{0}", "Starting election timer");
-                NodeManager.StartElectionTimer();
+                Log.Information("{0}", "Starting selection timer");
+                NodeManager.StartSelectionTimer();
             }
         };
 
@@ -145,13 +145,13 @@ public class RaftNode
 
         RaftEvents.WaitForVoteTimeoutEvent = () =>
         {
-            //restart election time                
+            //restart selection time                
             Role = Roles.Follower;
-            NodeManager.ResetElectionTimer();
-            NodeManager.StartElectionTimer();
+            NodeManager.ResetSelectionTimer();
+            NodeManager.StartSelectionTimer();
         };
 
-        RaftEvents.MemberChangedEvent = count => {
+        RaftEvents.NodeChangedEvent = count => {
             //update majority
             Majority = (count + 1) / 2;
             Log.Information("{0}", $"Majority is now {Majority}");
@@ -164,8 +164,8 @@ public class RaftNode
         NodeManager.SendTerminateSignal();
     }
 
-    public void Stop(TimeSpan timeSpan)
+    public void Exit(TimeSpan timeSpan)
     {
-        NodeManager.Stop(timeSpan);
+        NodeManager.Exit(timeSpan);
     }
 }

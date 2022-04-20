@@ -1,7 +1,7 @@
-﻿public class AskForVote
+﻿public class RequestForVote  
 {
     public int Term { get; private set; }
-    public AskForVote(int term)
+    public RequestForVote  (int term)
     {
         Term = term;
     }

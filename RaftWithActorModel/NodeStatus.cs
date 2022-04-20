@@ -3,8 +3,8 @@
     public double Time { get; private set; }
     public int Term { get; private set; }
     public int NodeId { get; private set; }
-    public int ElectionDuration { get; set; }
-    public int Election_ExpiredTime { get; set; }
+    public int SelectionDuration { get; set; }
+    public int Selection_ExpiredTime { get; set; }
     public bool IsLeader { get; set; }
     public string Role { get; set; }
     public int ProcessId { get; set; }

@@ -4,7 +4,7 @@ using Serilog;
 
 public class Actor_Candidate : ReceiveActor
 {
-    public class WaitTimeout { }
+    public class StopTimeout { }
 
     private bool _timeStarted;
     private ICancelable _timerTask;
@@ -12,8 +12,8 @@ public class Actor_Candidate : ReceiveActor
     {
         var mediator = DistributedPubSub.Get(Context.System).Mediator;
 
-        Receive<AskForVote>(a => {
-            Log.Information("{0}", "Receive Asks for votes Message");
+        Receive<RequestForVote  >(a => {
+            Log.Information("{0}", "Receive Request for votes Message");
             mediator.Tell(new Publish("voterequest", new VoteRequest(a.Term, RaftNode.ClusterUid)));
         });
 
@@ -26,7 +26,7 @@ public class Actor_Candidate : ReceiveActor
 
         });
 
-        Receive<WaitTimeout>(v =>
+        Receive<StopTimeout>(v =>
         {
             if (_timeStarted)
             {
@@ -38,12 +38,12 @@ public class Actor_Candidate : ReceiveActor
         Receive<StartWaitForVote>(w => {
             if (w.Start)
             {
-                Log.Information("{0}", "Waiting for vote");
+                Log.Information("{0}", "Waiting for recive vote");
                 startWait();
             }
             else
             {
-                Log.Information("{0}", "Stopped waiting for vote");
+                Log.Information("{0}", "Stopped waiting for recive vote");
                 stopWait();
             }
         });
@@ -56,7 +56,7 @@ public class Actor_Candidate : ReceiveActor
         {
             _timeStarted = true;
             _timerTask = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(3),
-                Context.Self, new WaitTimeout(), ActorRefs.NoSender);
+                Context.Self, new StopTimeout(), ActorRefs.NoSender);
         }
     }
 
