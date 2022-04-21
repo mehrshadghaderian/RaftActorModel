@@ -24,7 +24,7 @@ public class RaftNode
         get { return _role; }
         set
         {
-            Log.Information("{0}", $"node role is now {_role.ToString()}");
+            Log.Information("{0}", $"node state is now {_role.ToString()}");
             _role = value;
         }
     }
@@ -138,7 +138,7 @@ public class RaftNode
             }
             else
             {
-                Log.Information("{0}", $"Not voting. {vr.SenderId} asking for term {vr.Term}, last voted for {_votedForTerm} and role is {Role.ToString()}");
+                Log.Information("{0}", $"Not voting. {vr.SenderId} asking for term {vr.Term}, last voted for {_votedForTerm} and state is {Role.ToString()}");
                 return false;
             }
         };
