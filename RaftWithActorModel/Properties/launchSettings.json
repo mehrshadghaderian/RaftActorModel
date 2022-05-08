@@ -2,7 +2,9 @@
   "profiles": {
     "AkkaRaft": {
       "commandName": "Project",
-      "commandLineArgs": "1239"
+      "commandLineArgs": "1239",
+      "remoteDebugEnabled": false,
+      "nativeDebugging": true
     }
   }
 }

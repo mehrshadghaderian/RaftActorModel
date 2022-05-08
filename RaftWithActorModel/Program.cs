@@ -13,22 +13,28 @@ Log.Logger = new LoggerConfiguration()
 var hocanConfig = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "hocan.configfile"))); 
 
 
-using (var system = ActorSystem.Create("raftActorSystem", hocanConfig))
-{
-    var cluster = Cluster.Get(system);
-    int uid = cluster.SelfUniqueAddress.Uid;
-    var node = new RaftNode(uid);
-    NodeManager.CreateActorLeader(system.ActorOf<Actor_Leader>("leader"));
-    NodeManager.CreateActorFollower(system.ActorOf<Actor_Follower>("follower"));
-    NodeManager.CreateActorCandidate(system.ActorOf<Actor_Candidate>("candidate"));
-    NodeManager.CreateActorSelection(system.ActorOf<Actor_Selection>("selectionTerm"));
-    NodeManager.CreateActorHeartbeat(system.ActorOf<Actor_Heartbeat>("heartbeat"));
-    Log.Information("Enter 'quit' to exit Actor");
 
-    string exitcommand = "";
-    do
-    {
-        exitcommand = Console.ReadLine();
-    } while (exitcommand.ToLower() != "quit");
-    node.Exit(TimeSpan.FromSeconds(20));
+for (int i = 0; i < 1; i++)
+{
+    var system = ActorSystem.Create("raftActorSystem", hocanConfig);
+ 
+        var cluster = Cluster.Get(system);
+        int uid = cluster.SelfUniqueAddress.Uid;
+        var node = new RaftNode(uid);
+        NodeManager.CreateActorLeader(system.ActorOf<Actor_Leader>("leader" ));
+        NodeManager.CreateActorFollower(system.ActorOf<Actor_Follower>("follower"  ));
+        NodeManager.CreateActorCandidate(system.ActorOf<Actor_Candidate>("candidate"  ));
+        NodeManager.CreateActorSelection(system.ActorOf<Actor_Selection>("selectionTerm"  ));
+        NodeManager.CreateActorHeartbeat(system.ActorOf<Actor_Heartbeat>("heartbeat"  ));
+        Log.Information("Enter 'quit' to exit Actor");
+     
+        //string exitcommand = "";
+        //do
+        //{
+        //    exitcommand = Console.ReadLine();
+        //} while (exitcommand.ToLower() != "quit");
+        //node.Exit(TimeSpan.FromSeconds(20));
+  
 }
+Console.ReadLine();
+
