@@ -25,8 +25,8 @@ public class Actor_Selection : ReceiveActor
             _expiredTime += timeStepMillisecond;
 
             RaftEvents.SelectionExpiredTimeEvent?.Invoke(_expiredTime);
-
-            Console.Write($"({(float)_expiredTime / 1000})");
+            //todo mehrshad
+            //Console.Write($"({(float)_expiredTime / 1000})");
             if (_expiredTime >= _selectionDuration)
             {
                 randomTimeout();
@@ -63,7 +63,8 @@ public class Actor_Selection : ReceiveActor
         byte[] b = new byte[2];
         RandomNumberGenerator.Create().GetBytes(b);
         double rand = Math.Abs((double)BitConverter.ToInt16(b, 0)) / 100000;
-        Log.Information("{0}", $"selection is now {_selectionDuration}ms");
+        // todo mehrshad
+        //Log.Information("{0}", $"selection is now {_selectionDuration}ms");
         _selectionDuration = (int)(rand * (maximumPeriodTimeMillisecond - minmunPeriodTimeMillisecond) + minmunPeriodTimeMillisecond);
         RaftEvents.SelectionDurationChangedEvent?.Invoke(_selectionDuration);
     }

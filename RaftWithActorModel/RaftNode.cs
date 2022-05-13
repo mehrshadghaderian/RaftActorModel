@@ -17,7 +17,7 @@ public class RaftNode
     public static int SelectionDuration { get; set; }
     public static List<LogEntry> LogEntries { get; private set; }
     public static int LogIndex { get { return LogEntries.Count; } }
-
+    public static NodeRequest? CurrentRequet { get; set; }
     static Roles _role;
     public static Roles Role
     {
@@ -49,8 +49,7 @@ public class RaftNode
             {
                 Role = Roles.Candidate;
                 Term++;
-                Votes = 0;
-
+                Votes = 0; 
                 Log.Information("{0}", $"Starting selection for term {Term}");
                 NodeManager.StopSelectionTimer();
                 NodeManager.RequestForVote  (Term);
@@ -78,7 +77,7 @@ public class RaftNode
             }
         };
 
-        RaftEvents.HeartbeatEvent = (senderpath, hb) => {
+         RaftEvents.HeartbeatEvent = (senderpath, hb) => {
             //resets selection time
             //otherwise becomes candidate and send request for votes         
             NodeManager.ResetSelectionTimer();
@@ -103,11 +102,12 @@ public class RaftNode
             }
 
             CurrentLeaderId = hb.SenderId;
-
+            
             if (Role == Roles.Follower)
             {
-                NodeManager.SendHeartbeatResponse(hb.Id, hb.SenderId, senderpath, hb.Term, hb.LogIndex);
-            }
+                NodeManager.SendHeartbeatResponse(hb.Id, hb.SenderId, senderpath, hb.Term, hb.LogIndex,CurrentRequet);
+                 CurrentRequet = null;
+            } 
         };
 
         RaftEvents.JoinedClusterEvent = () => {
@@ -156,12 +156,37 @@ public class RaftNode
             Majority = (count + 1) / 2;
             Log.Information("{0}", $"Majority is now {Majority}");
         };
+           RaftEvents.NodeRequestResponseEvent = (boo) => {
+               if (Role != Roles.Leader)
+               {
+                   //Log.Information("{0}", "Starting selection timer");
+                   //NodeManager.StartSelectionTimer();
+               }
+           };
 
+    }
+
+    public void SendRequest(NodeRequest nodeRequest)
+    {
+        if (Role == Roles.Leader)
+        {
+            NodeManager.SendRequest(nodeRequest.Number, nodeRequest.RequestDateTime);
+            CurrentRequet = null;
+        }
+        else
+        {
+            CurrentRequet = nodeRequest;
+        }
+ 
     }
 
     public void OnKill()
     {
         NodeManager.SendTerminateSignal();
+    }
+    public Roles getRoles()
+    {
+        return _role;
     }
 
     public void Exit(TimeSpan timeSpan)

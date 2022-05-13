@@ -42,6 +42,10 @@ internal class NodeManager
     {
         _heartbeat?.Tell(new RunHeartbeat(true));
     }
+    public static void SendRequest(int number,DateTime sentdatetime)
+    {
+        _heartbeat?.Tell(new NodeRequest(number, sentdatetime));
+    }
 
     public static void StopHeartbeat()
     {
@@ -81,9 +85,9 @@ internal class NodeManager
     {
         //_statusBroadcast.Tell(new SendTerminate());
     }
-    public static void SendHeartbeatResponse(double heartbeatId, int senderId, string senderPath, int term, int logIndex)
+    public static void SendHeartbeatResponse(double heartbeatId, int senderId, string senderPath, int term, int logIndex,NodeRequest? CurrentRequet)
     {
-        _heartbeat.Tell(new SendHeartbeatResponse(heartbeatId, senderId, senderPath, term, logIndex));
+        _heartbeat.Tell(new SendHeartbeatResponse(heartbeatId, senderId, senderPath, term, logIndex,CurrentRequet));
     }
 
     public static void Exit(TimeSpan timeout)

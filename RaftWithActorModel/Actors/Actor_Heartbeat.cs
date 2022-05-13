@@ -11,6 +11,7 @@ public class Actor_Heartbeat : ReceiveActor
     private bool _joinedCluster;
     private ICancelable _heartbeatTask;
     private int _nodesCount;
+    private int _nodeRequestResponseCount=0;
     private bool _heartbeatStarted = false;
 
     protected Cluster cluster = Cluster.Get(Context.System);
@@ -24,14 +25,75 @@ public class Actor_Heartbeat : ReceiveActor
             if (Sender != Self)
             {
                 Console.Write(".");
-                RaftEvents.HeartbeatEvent?.Invoke(Sender.Path.ToString(), hb);
+              RaftEvents.HeartbeatEvent?.Invoke(Sender.Path.ToString(), hb);
             }
+        });
+
+        Receive<NodeRequest>(hb => 
+        { 
+            mediator.Tell(new Publish("heartbeat", new SendNodeRequest(hb.Number,hb.RequestDateTime,hb.TotalNumbers)));
+            //if (Sender == Self)
+            //{
+            //    //Log.Information("{0}", "***************************************************************TotalNumbers : " + hb.TotalNumbers + "Number : " + hb.Number);
+            //    //RaftEvents.NodeRequestEvent?.Invoke(Sender.Path.ToString(), hb);
+
+            //    mediator.Tell(new Publish("heartbeat", new SendNodeRequest(hb.Number)));
+            //}
+            //else
+            //{
+            //    Sender.Tell(new NodeRequestResponse(true));
+            //}
+
+            //RaftEvents.NodeRequestResponseEvent?.Invoke(Sender.Path.ToString(), true);
+
+        });
+        Receive<SendNodeRequest>(hb =>
+         {
+             if (Sender != Self)
+             {
+                 Sender.Tell(new NodeRequestResponse(hb.RequestDateTime)); 
+             } 
+         });
+
+        //Receive<bool>(hb =>
+        //{ 
+
+        //}
+        Receive<NodeRequestResponse>(hb =>
+        {
+            _nodeRequestResponseCount++;
+            if (Sender != Self)
+            {
+            }
+            Log.Error("  * *******************************************");
+            Log.Error("  * *******************************************");
+            Log.Error("  * *******************************************");
+            Log.Error("  * *******************************************");
+            Log.Information("{0}", "********************************************_nodeRequestResponseCount = " + _nodeRequestResponseCount);
+     
+            if (_nodeRequestResponseCount==_nodesCount-1)
+            {
+              
+                Log.Error("################################################################################");
+                Log.Error("################################################################################");
+                Log.Error("################################################################################");
+                Log.Error("################################################################################");
+                Log.Information("{0}", "********************************************_nodeRequestResponseCount = " + _nodeRequestResponseCount);
+                var time = (DateTime.Now.TimeOfDay - hb.sendTime.TimeOfDay).TotalSeconds;
+                Log.Error("Time is:  "+ time);
+                Console.ReadLine();
+            }
+          
         });
 
         Receive<SendHeartbeatResponse>(s =>
         {
             var sender = Context.ActorSelection(s.SenderPath);
             sender.Tell(new HeartbeatResponse(s.HeartbeatId, s.Term, s.LogIndex));
+            if(s.CurrentRequet!=null)
+            {
+                mediator.Tell(new Publish("heartbeat", new SendNodeRequest(s.CurrentRequet.Number, s.CurrentRequet.RequestDateTime, s.CurrentRequet.TotalNumbers)));
+            }
         });
 
         Receive<SendHeartbeat>(send =>

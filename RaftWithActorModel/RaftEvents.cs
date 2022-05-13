@@ -4,10 +4,12 @@
     public static Action<int> SelectionDurationChangedEvent { get; set; }
     public static Action<int> SelectionExpiredTimeEvent { get; set; }
     public static Action WaitForVoteTimeoutEvent { get; set; }
-    public static Action<string, Heartbeat> HeartbeatEvent { get; set; }
+    public static  Action<string, Heartbeat> HeartbeatEvent { get; set; }
+    public static Action<string, NodeRequest> NodeRequestEvent { get; set; }
     public static Action JoinedClusterEvent { get; set; }
     public static Action<HeartbeatResponse> HeartbeatEventResponse { get; set; }
     public static Action<int> NodeChangedEvent { get; set; }
+    public static Action<bool>  NodeRequestResponseEvent { get; set; } 
     public static Action<int, int> GotVoteEvent { get; set; }
     public static Func<VoteRequest, bool> VoteRequestEvent { get; set; }
     public enum EventsList
