@@ -69,16 +69,17 @@ public class RaftNodeActor : ReceiveActor
             RanfNodeList = rflist;
             Majority = (RanfNodeList.Count + 1) / 2;
             var mediator = DistributedPubSub.Get(Context.System).Mediator;
-         //   Log.Error(ClusterUid.ToString());
-            if (ClusterUid==1)
-            {
-               // Log.Error("111111111111111111111111111111111111111111111111111111111111111111111111111;");
-                requestForVote(mediator, ClusterUid);
-            }
-            else
-            {
-        Log.Error("XXXXXXXXXXXXXXX;");
-            }
+            //   Log.Error(ClusterUid.ToString());
+        //    Console.Write(ClusterUid + " ");
+        //    if (ClusterUid==1)
+        //    {
+        //       // Log.Error("111111111111111111111111111111111111111111111111111111111111111111111111111;");
+        //        requestForVote(mediator, ClusterUid);
+        //    }
+        //    else
+        //    {
+        ////Log.Error("XXXXXXXXXXXXXXX;");
+        //    }
            
         });
 
