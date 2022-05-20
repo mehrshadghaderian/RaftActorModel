@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftWithActorModel", "RaftWithActorModel\RaftWithActorModel.csproj", "{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftWithActorModel", "RaftWithActorModel\RaftWithActorModel.csproj", "{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActorModelCluster", "ActorModelCluster\ActorModelCluster.csproj", "{30F86175-4A4B-42BF-BEAC-3DF996402D0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActorModelCluster", "ActorModelCluster\ActorModelCluster.csproj", "{30F86175-4A4B-42BF-BEAC-3DF996402D0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActorModelSequential", "ActorModelSequential\ActorModelSequential.csproj", "{563F48C4-41B0-48E9-A668-6474E475A27E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30F86175-4A4B-42BF-BEAC-3DF996402D0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{563F48C4-41B0-48E9-A668-6474E475A27E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{563F48C4-41B0-48E9-A668-6474E475A27E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{563F48C4-41B0-48E9-A668-6474E475A27E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{563F48C4-41B0-48E9-A668-6474E475A27E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

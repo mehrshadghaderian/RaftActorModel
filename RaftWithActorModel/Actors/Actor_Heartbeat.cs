@@ -109,7 +109,27 @@ public class Actor_Heartbeat : ReceiveActor
                 RaftEvents.HeartbeatEventResponse?.Invoke(hbr);
             }
         });
-
+        Receive<RunHeartbeat>(s => {
+            if (s.Start)
+            {
+                if (!_heartbeatStarted)
+                {
+                    _heartbeatStarted = true;
+                    Log.Information("{0}", " Start heartbeat time ");
+                    _heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
+                    TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
+                }
+            }
+            else
+            {
+                if (_heartbeatStarted)
+                {
+                    _heartbeatStarted = false;
+                    Log.Information("{0}", "Stop heartbeat time ");
+                    _heartbeatTask?.Cancel();
+                }
+            }
+        });
         Receive<MemberStatusChange>(_ =>
         {
             var selfStatus = cluster.State.Members.Where(m => m.UniqueAddress.Uid == cluster.SelfUniqueAddress.Uid).FirstOrDefault()?.Status ?? MemberStatus.Down;
@@ -136,28 +156,7 @@ public class Actor_Heartbeat : ReceiveActor
                 RaftEvents.NodeChangedEvent?.Invoke(_nodesCount);
             }
         });
-
-        Receive<RunHeartbeat>(s => {
-            if (s.Start)
-            {
-                if (!_heartbeatStarted)
-                {
-                    _heartbeatStarted = true;
-                    Log.Information("{0}", " Start heartbeat time ");
-                    _heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
-                    TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
-                }
-            }
-            else
-            {
-                if (_heartbeatStarted)
-                {
-                    _heartbeatStarted = false;
-                    Log.Information("{0}", "Stop heartbeat time ");
-                    _heartbeatTask?.Cancel();
-                }
-            }
-        });
+         
     }
 
     protected override void PreStart()

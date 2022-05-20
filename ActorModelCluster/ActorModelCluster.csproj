@@ -11,8 +11,8 @@
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.37" />
-    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.37" />
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.4.38" />
+    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.38" />
     <PackageReference Include="log4net" Version="2.0.14" />
   </ItemGroup>
   <ItemGroup>

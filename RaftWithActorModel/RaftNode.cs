@@ -102,8 +102,13 @@ public class RaftNode
             }
 
             CurrentLeaderId = hb.SenderId;
-            
-            if (Role == Roles.Follower)
+         
+             if (Role == Roles.Leader)
+             {
+                 Log.Error("{0}", "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  " + CurrentLeaderId.ToString());
+             }
+
+                 if (Role == Roles.Follower)
             {
                 NodeManager.SendHeartbeatResponse(hb.Id, hb.SenderId, senderpath, hb.Term, hb.LogIndex,CurrentRequet);
                  CurrentRequet = null;
@@ -170,6 +175,7 @@ public class RaftNode
     {
         if (Role == Roles.Leader)
         {
+
             NodeManager.SendRequest(nodeRequest.Number, nodeRequest.RequestDateTime);
             CurrentRequet = null;
         }
@@ -177,9 +183,14 @@ public class RaftNode
         {
             CurrentRequet = nodeRequest;
         }
- 
+
     }
 
+    public int GetProcessId()
+    {
+        return ProcessId;
+    }
+    
     public void OnKill()
     {
         NodeManager.SendTerminateSignal();
