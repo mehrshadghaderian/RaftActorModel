@@ -1,7 +1,7 @@
 ﻿akka {
 	logLevel=DEBUG,
-	  log-dead-letters-during-shutdown = off
-  log-dead-letters = off
+	  log-dead-letters-during-shutdown = on
+  log-dead-letters = on
     actor {
 		debug.unhandled = off
 		stdout-loglevel = off
@@ -31,7 +31,7 @@
 		log-info = off
         seed-nodes = [
         "akka.tcp://raftActorSystem@localhost:5050"]
-		roles = ["rafnode1"]
+		roles = ["heartbeat"]
     }
 
 }

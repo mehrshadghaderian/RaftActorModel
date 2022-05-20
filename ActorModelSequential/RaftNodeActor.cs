@@ -4,6 +4,7 @@ using Akka.Cluster;
 using static Akka.Cluster.ClusterEvent;
 using Serilog;
 using RaftWithActorModel.ActorsClasses;
+using System.Security.Cryptography;
 public class RaftNodeActor : ReceiveActor
 {
     public enum Roles
@@ -87,6 +88,7 @@ public class RaftNodeActor : ReceiveActor
             {
                 Console.Write(".");
             }
+            mediator.Tell(new Publish("voterequest", new VoteRequest(hb.Term, clusterUniqueId)));
         });
 
         Receive<VoteRequest>(vr =>
@@ -240,9 +242,67 @@ public class RaftNodeActor : ReceiveActor
                 }
             }
         });
+        Receive<StopTimeout>(v =>
+        {
+            if (_timeStarted)
+            {
+                Log.Information("{0}", "Wait timeout");
+                // RaftEvents.WaitForVoteTimeoutEvent?.Invoke();
+                Role = Roles.Follower;
+                _expiredTime = 0;
+                if (!_selectionStarted)
+                {
+                    _selectionStarted = true;
+                    _timerTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
+                    TimeSpan.FromMilliseconds(timeStepMillisecond), Context.Self, new SelectionExpiredTime(), ActorRefs.NoSender);
+                }
+            }
+        });
+
+        Receive<SelectionExpiredTime>(t => {
+
+            _expiredTime += timeStepMillisecond;
+
+          //  RaftEvents.SelectionExpiredTimeEvent?.Invoke(_expiredTime);
+            Selection_ExpiredTime = _expiredTime;
+            //todo mehrshad
+            //Console.Write($"({(float)_expiredTime / 1000})");
+            if (_expiredTime >= _selectionDuration)
+            {
+                randomTimeout();
+                //RaftEvents.SelectionTimeoutEvent?.Invoke();
+                if (Role == Roles.Follower)
+                {
+                    Role = Roles.Candidate;
+                    term++;
+                    Votes = 0;
+                    Log.Information("{0}", $"Starting selection for term {term}");
+                    // NodeManager.StopSelectionTimer();
+                    if (_selectionStarted)
+                    {
+                        _selectionStarted = false;
+                        _timerTask?.Cancel();
+                    }
+                    // NodeManager.RequestForVote(Term);
+                    mediator.Tell(new Publish("voterequest", new VoteRequest(term, ClusterUid)));
+                    //NodeManager.StartWaitForVote();
+                    startWait();
+                }
+            }
+        });
 
     }
-
+    private void randomTimeout()
+    {
+        byte[] b = new byte[2];
+        RandomNumberGenerator.Create().GetBytes(b);
+        double rand = Math.Abs((double)BitConverter.ToInt16(b, 0)) / 100000;
+        // todo mehrshad
+        //Log.Information("{0}", $"selection is now {_selectionDuration}ms");
+        _selectionDuration = (int)(rand * (maximumPeriodTimeMillisecond - minmunPeriodTimeMillisecond) + minmunPeriodTimeMillisecond);
+        //RaftEvents.SelectionDurationChangedEvent?.Invoke(_selectionDuration);
+        SelectionDuration = _selectionDuration;
+    }
     public int term { get; set; } = 0;
     private void requestForVote(IActorRef? mediator, int id)
     {

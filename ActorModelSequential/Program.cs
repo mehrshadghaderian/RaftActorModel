@@ -11,7 +11,7 @@ namespace MyNameSpace
     public  class MyClass
     {
   
-        public static int nodeCount { get; set; } = 20;
+        public static int nodeCount { get; set; } = 2000;
 
 
         public static void Main()
