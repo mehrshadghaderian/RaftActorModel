@@ -41,7 +41,7 @@ public class RaftNodeActor : ReceiveActor
         }
     }
     public static int Term { get; private set; }
-    public static int ClusterUid { get; private set; }
+    public static int raftNodeId { get; private set; }
     public static int CurrentLeaderId { get; private set; }
     public static int Selection_ExpiredTime { get; set; }
     public static int SelectionDuration { get; set; }
@@ -50,7 +50,7 @@ public class RaftNodeActor : ReceiveActor
     public static int Votes { get; private set; }
     public static int Majority { get; private set; }
     public static int ProcessId { get; private set; }
-
+    public static DateTime RequestForVotDateTime { get; private set; }
 
     //election property
     private const int timeStepMillisecond = 50;
@@ -59,22 +59,22 @@ public class RaftNodeActor : ReceiveActor
     private int _selectionDuration = maximumPeriodTimeMillisecond;
     private int _expiredTime = 0;
     private bool _selectionStarted = false;
-    public RaftNodeActor(int clusterUniqueId)
+    public RaftNodeActor(int _raftNodeId)
     {
         IActorRef? mediator = DistributedPubSub.Get(Context.System).Mediator;
-        ClusterUid = clusterUniqueId;
+        raftNodeId = _raftNodeId;
  
         Receive<List<IActorRef>>(rflist =>
         {
             RanfNodeList = rflist;
             Majority = (RanfNodeList.Count + 1) / 2;
             var mediator = DistributedPubSub.Get(Context.System).Mediator;
-            //   Log.Error(ClusterUid.ToString());
-        //    Console.Write(ClusterUid + " ");
-        //    if (ClusterUid==1)
+            //   Log.Error(raftNodeId.ToString());
+        //    Console.Write(raftNodeId + " ");
+        //    if (raftNodeId==1)
         //    {
         //       // Log.Error("111111111111111111111111111111111111111111111111111111111111111111111111111;");
-        //        requestForVote(mediator, ClusterUid);
+        //        requestForVote(mediator, raftNodeId);
         //    }
         //    else
         //    {
@@ -89,7 +89,8 @@ public class RaftNodeActor : ReceiveActor
             {
                 Console.Write(".");
             }
-            mediator.Tell(new Publish("voterequest", new VoteRequest(hb.Term, clusterUniqueId)));
+            RequestForVotDateTime = hb.datetime;
+            mediator.Tell(new Publish("voterequest", new VoteRequest(hb.Term, _raftNodeId)));
         });
 
         Receive<VoteRequest>(vr =>
@@ -98,7 +99,7 @@ public class RaftNodeActor : ReceiveActor
             term = vr.Term;
             if (_votedForTerm < vr.Term && Role != Roles.Leader)
             {
-                if (vr.SenderId != ClusterUid)
+                if (vr.SenderId != raftNodeId)
                 {
                     Log.Information("{0}", $"Vote request from candidate {vr.SenderId} for term {vr.Term}");
                 }
@@ -113,17 +114,17 @@ public class RaftNodeActor : ReceiveActor
             }
             else
             {
-                Log.Information("{0}", $"Not voting. {vr.SenderId} asking for term {vr.Term}, last voted for {_votedForTerm} and state is {Role.ToString()}");
+                //Log.Information("{0}", $"Not voting. {vr.SenderId} asking for term {vr.Term}, last voted for {_votedForTerm} and state is {Role.ToString()}");
                 vote = false;
             }
             if (vote)
             {
-                Sender.Tell(new Vote(vr.Term, ClusterUid));
+                Sender.Tell(new Vote(vr.Term, raftNodeId));
             }
         });
         Receive<Vote>(v =>
         {
-            Log.Information("{0}", "Receive Vote Message, than Reset Wait timeout");
+            //Log.Information("{0}", "Receive Vote Message, than Reset Wait timeout");
             //reset
             stopWait();
             startWait();
@@ -133,12 +134,13 @@ public class RaftNodeActor : ReceiveActor
                 Votes++;
             }
 
-            Log.Information("{0}", $"Got {Votes}/{Majority} votes for term {term} from {v.SenderId}");
+            //Log.Information("{0}", $"Got {Votes}/{Majority} votes for term {term} from {v.SenderId}");
             if (Votes >= Majority)
             {
-                Log.Information("{0}", "Selected!");
+                CurrentLeaderId = raftNodeId;
+                Log.Information("{0}", "************************************************************************************"+ CurrentLeaderId + " Selected!  Time : " +(DateTime.Now-RequestForVotDateTime).TotalSeconds);
                 Role = Roles.Leader;
-                CurrentLeaderId = ClusterUid;
+              
                 startWait();
                 if (!_heartbeatStarted)
                 {
@@ -163,15 +165,15 @@ public class RaftNodeActor : ReceiveActor
 
         Receive<SendHeartbeat>(send =>
         {
-            Console.Write(">");
+           // Console.Write(">");
             // RaftNode.LogIndex = 1;
-            mediator.Tell(new Publish("heartbeat", new Heartbeat(term, 1, clusterUniqueId)));
+            mediator.Tell(new Publish("heartbeat", new Heartbeat(term, 1, _raftNodeId)));
         });
         Receive<Heartbeat>(hb =>
         {
             if (Sender != Self)
             {
-                Console.Write(".");
+              //  Console.Write(".");
                 //   RaftEvents.HeartbeatEvent?.Invoke(Sender.Path.ToString(), hb);
 
 
@@ -285,7 +287,7 @@ public class RaftNodeActor : ReceiveActor
                         _timerTask?.Cancel();
                     }
                     // NodeManager.RequestForVote(Term);
-                    mediator.Tell(new Publish("voterequest", new VoteRequest(term, ClusterUid)));
+                    mediator.Tell(new Publish("voterequest", new VoteRequest(term, raftNodeId)));
                     //NodeManager.StartWaitForVote();
                     startWait();
                 }

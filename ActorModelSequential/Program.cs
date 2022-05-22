@@ -11,7 +11,7 @@ namespace MyNameSpace
     public  class MyClass
     {
   
-        public static int nodeCount { get; set; } = 20000;
+        public static int nodeCount { get; set; } = 2000;
 
 
         public static void Main()
@@ -53,7 +53,7 @@ akka.remote.dot-netty.tcp {
             //{
             //    actor.Tell(new RequestForVote(1));
             //}
-            NodeManager.GetActorList().FirstOrDefault().Tell(new RequestForVote(1));
+            NodeManager.GetActorList().Skip(3).FirstOrDefault().Tell(new RequestForVote(1,DateTime.Now));
             Console.ReadLine();
         }
     }
