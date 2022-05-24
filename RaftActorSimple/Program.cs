@@ -1,12 +1,13 @@
 ﻿
 namespace MyNameSpace
-{ 
+{
+    using RaftActorSimple;
     using Serilog; 
     public class MyClass
     {
 
-        public static int nodeCount { get; set; } = 2000;
-
+        public static int nodeCount { get; set; } = 30000;
+     
 
         public static void Main()
         {
@@ -21,8 +22,15 @@ namespace MyNameSpace
                 RaftNode raftNode =new RaftNode(i);
                 raftnodes.Add(raftNode);
             }
-            raftnodes.First().LeaderElection();
-            NodeManager.GetActorList().Skip(3).FirstOrDefault().Tell(new RequestForVote(1, DateTime.Now));
+            raftnodes.Shuffle();
+            RaftNode randomRaftNode  = raftnodes.First();
+            DateTime starttime = DateTime.Now;
+            int electionTerm = 1;
+            raftnodes.ForEach(node => {
+                node.SetRaftNoedList(raftnodes);
+            }); 
+            randomRaftNode.LeaderElection(electionTerm); 
+            Console.WriteLine((DateTime.Now-starttime).TotalSeconds);
             Console.ReadLine();
         }
     }

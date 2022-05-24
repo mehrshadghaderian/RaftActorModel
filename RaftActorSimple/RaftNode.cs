@@ -21,10 +21,10 @@ public class RaftNode
     private int _nodesCount;
     private int _nodeRequestResponseCount = 0;
     private bool _heartbeatStarted = false;
+    private List<RaftNode> raftnodeList;
 
     //protected Cluster cluster = Cluster.Get(Context.System);
 
-    public int Id { get; set; }
    
     static Roles _role;
     public static Roles Role
@@ -36,14 +36,15 @@ public class RaftNode
         }
     }
     public static int Term { get; private set; }
-    public static int raftNodeId { get; private set; }
+    public  int raftNodeId { get; private set; } 
+    public int Id { get; set; }
     public static int CurrentLeaderId { get; private set; }
     public static int Selection_ExpiredTime { get; set; }
     public static int SelectionDuration { get; set; }
     private int _votedForTerm = 0;
 
     public static int Votes { get; private set; }
-    public static int Majority { get; private set; }
+    public  int Majority { get; private set; }
     public static int ProcessId { get; private set; }
     public static DateTime RequestForVotDateTime { get; private set; }
 
@@ -55,8 +56,9 @@ public class RaftNode
     private int _expiredTime = 0;
     private bool _selectionStarted = false;
     public RaftNode(int _raftNodeId)
-    { 
-        raftNodeId = _raftNodeId;  
+    {
+        raftNodeId = _raftNodeId; 
+        Id = _raftNodeId;
     }
     private void randomTimeout()
     {
@@ -71,33 +73,35 @@ public class RaftNode
     }
     public int term { get; set; } = 0;
 
-    public void LeaderElection(List<RaftNode> raftNodes)
+    public void LeaderElection(int electionTerm)
     {
-        Console.WriteLine("Node with Id: "+this.Id+" Start Request For Vote");
-        raftNodes.Where(a => a.Id != this.Id).ToList().ForEach(raftNode => {
-            RequestForVote(new VoteRequest(term, this.Id));
+        Console.WriteLine("Node with Id: "+raftNodeId+" Start Request For Vote"); 
+        raftnodeList.Where(a => a.Id != this.Id).ToList().ForEach(raftNode => {
+            raftNode.RequestForVote(new VoteRequest(electionTerm, raftNodeId,DateTime.Now));
         });
+    }
+    public void SetRaftNoedList(List<RaftNode> _raftnodeList )
+    { 
+        this.raftnodeList = _raftnodeList;
+        this.Majority = (raftnodeList.Count + 1) / 2; 
     }
     public void RequestForVote(VoteRequest voteRequest)
     { 
         Console.WriteLine("Node with Id: " + voteRequest.SenderId + " Request For Vote from : " +this.Id);
-    }
-    public void VoteRequest()
-    {
         bool vote = false;
-        term = vr.Term;
-        if (_votedForTerm < vr.Term && Role != Roles.Leader)
+        this.term = voteRequest.Term;
+        if (_votedForTerm < voteRequest.Term && Role != Roles.Leader)
         {
-            if (vr.SenderId != raftNodeId)
+            if (voteRequest.SenderId != this.Id)
             {
-                Log.Information("{0}", $"Vote request from candidate {vr.SenderId} for term {vr.Term}");
+                Log.Information("{0}", $"Vote request from candidate {voteRequest.SenderId} for term {voteRequest.Term}");
             }
             else
             {
-                Log.Information("{0}", $"Vote request from self in term {vr.Term}");
+                Log.Information("{0}", $"Vote request from self in term {voteRequest.Term}");
             }
 
-            _votedForTerm = vr.Term;
+            this._votedForTerm = voteRequest.Term;
 
             vote = true;
         }
@@ -108,7 +112,47 @@ public class RaftNode
         }
         if (vote)
         {
-            Sender.Tell(new Vote(vr.Term, raftNodeId));
+            raftnodeList.Where(a => a.Id == voteRequest.SenderId).FirstOrDefault().Vote(new Vote(voteRequest.Term, this.Id));
+ 
         }
     }
+    public void Vote(Vote vote)
+    { 
+        //if (this.term == vote.Term)
+        //{
+        //    Votes++;
+        //}
+        Votes++;
+        //Log.Information("{0}", $"Got {Votes}/{Majority} votes for term {term} from {v.SenderId}");
+        if (Votes >= Majority)
+        {
+            if (Role!=Roles.Leader)
+            {
+                CurrentLeaderId = raftNodeId;
+                Log.Information("{0}", "************************************************************************************" + CurrentLeaderId + " Selected!  Time : " + (DateTime.Now - RequestForVotDateTime).TotalSeconds);
+                Role = Roles.Leader;
+                if (!_heartbeatStarted)
+                {
+                    _heartbeatStarted = true;
+                    Log.Information("{0}", " Start heartbeat time ");
+                    //_heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
+                    //TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
+                }
+            }
+            else
+            {
+                Log.Information("Ignore Vote becuse node is leader");
+            }
+       
+        }
+    }
+    public   Task PeriodicFooAsync(Action action,TimeSpan interval, CancellationToken cancellationToken)
+    {
+        while (true)
+        { 
+              action();
+              Task.Delay(interval, cancellationToken);
+        }
+    }
+ 
 }
