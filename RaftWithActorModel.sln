@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftWithActorModel", "RaftW
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActorModelCluster", "ActorModelCluster\ActorModelCluster.csproj", "{30F86175-4A4B-42BF-BEAC-3DF996402D0D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActorModelSequential", "ActorModelSequential\ActorModelSequential.csproj", "{563F48C4-41B0-48E9-A668-6474E475A27E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftSequentioal", "RaftSequentioal\RaftSequentioal.csproj", "{563F48C4-41B0-48E9-A668-6474E475A27E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftActorSimple", "RaftActorSimple\RaftActorSimple.csproj", "{C1D11685-7E13-47B7-9452-93E94A16064B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftActor", "RaftActor\RaftActor.csproj", "{C1D11685-7E13-47B7-9452-93E94A16064B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
