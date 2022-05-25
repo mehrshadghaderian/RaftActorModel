@@ -1,18 +1,13 @@
 ﻿
 namespace MyNameSpace
 {
-    using Akka.Actor;
-    using Akka.Configuration;
-    using Serilog;
-    using Akka.Cluster;
-    using Akka.Cluster.Tools.PublishSubscribe;
-    using RaftWithActorModel.ActorsClasses;
-
-    public  class MyClass
+    using RaftActorSimple;
+    using Serilog; 
+    public class MyClass
     {
-  
-        public static int nodeCount { get; set; } = 30000;
 
+        public static int nodeCount { get; set; } = 30000;
+     
 
         public static void Main()
         {
@@ -21,41 +16,23 @@ namespace MyNameSpace
   .WriteTo.Console()
   //.WriteTo.File(AppContext.BaseDirectory + "\\logs\\{Date}.log")
   .CreateLogger();
-            var hocanConfig = ConfigurationFactory.ParseString(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "hocan.configfile")));
-            var config = ConfigurationFactory.ParseString(@"
-akka.remote.dot-netty.tcp {
-    transport-class = ""Akka.Remote.Transport.DotNetty.DotNettyTransport, Akka.Remote""
-    transport-protocol = tcp
-    port = 8091
-    hostname = ""127.0.0.1""
-}");
-            var system = ActorSystem.Create("raftActorSystem", hocanConfig);
-            //Parallel.For(0, nodeCount,
-            //               index =>
-            //               {
-            //                   var actor = system.ActorOf(Props.Create(() => new RaftNodeActor(index)), "rafnode" + index);
-            //                  // NodeManager.CreateActor(system.ActorOf<RaftNodeActor>("rafnode" + index));
-            //                   NodeManager.CreateActor(actor);
-            //               });
+            List<RaftNode> raftnodes = new List<RaftNode>();
             for (int i = 1; i <= nodeCount; i++)
             {
-                var actor = system.ActorOf(Props.Create(() => new RaftNodeActor(i)), "rafnode" + i);
-                // NodeManager.CreateActor(system.ActorOf<RaftNodeActor>("rafnode" + index));
-                NodeManager.CreateActor(actor);
+                RaftNode raftNode =new RaftNode(i);
+                raftnodes.Add(raftNode);
             }
-            // intrduce Actors Together 
-            //Parallel.ForEach(NodeManager.GetActorList(), actor =>
-            //{
-            //    actor.Tell(NodeManager.GetActorList());
-            //    //actor.Tell(new Welecome(1,""));
-            //}  );
-            //foreach (var actor in NodeManager.GetActorList())
-            //{
-            //    actor.Tell(new RequestForVote(1));
-            //}
-            NodeManager.GetActorList().Skip(3).FirstOrDefault().Tell(new RequestForVote(1,DateTime.Now));
+            raftnodes.Shuffle();
+            RaftNode randomRaftNode  = raftnodes.First();
+            DateTime starttime = DateTime.Now;
+            int electionTerm = 1;
+            raftnodes.ForEach(node => {
+                node.SetRaftNoedList(raftnodes);
+            }); 
+            randomRaftNode.LeaderElection(electionTerm); 
+            Console.WriteLine((DateTime.Now-starttime).TotalSeconds);
             Console.ReadLine();
         }
     }
-    
+
 }

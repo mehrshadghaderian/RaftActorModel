@@ -30,11 +30,9 @@ public class VoteRequest
 {
     public int Term { get; private set; }
     public int SenderId { get; private set; }
-    public DateTime datetime  { get; set; }
-    public VoteRequest(int term, int clusterUniqueId,DateTime _datetime)
+    public VoteRequest(int term, int clusterUniqueId)
     {
         SenderId = clusterUniqueId;
         Term = term;
-        datetime = _datetime;
     }
 }
