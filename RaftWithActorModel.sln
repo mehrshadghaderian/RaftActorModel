@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftWithActorModel", "RaftWithActorModel\RaftWithActorModel.csproj", "{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftActorModelMultipleNode", "RaftActorModelMultipleNode\RaftActorModelMultipleNode.csproj", "{8406CF8F-F7B2-43B7-8396-F63B225CE8E9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActorModelCluster", "ActorModelCluster\ActorModelCluster.csproj", "{30F86175-4A4B-42BF-BEAC-3DF996402D0D}"
 EndProject
