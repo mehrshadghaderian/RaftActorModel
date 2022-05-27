@@ -23,7 +23,7 @@ public class RaftNodeActor : ReceiveActor
 
     private bool _joinedCluster;
     private ICancelable _heartbeatTask;
-    private int _nodesCount;
+    private long _nodesCount;
     private int _nodeRequestResponseCount = 0;
     private bool _heartbeatStarted = false;
 
@@ -41,14 +41,14 @@ public class RaftNodeActor : ReceiveActor
         }
     }
     public static int Term { get; private set; }
-    public static int raftNodeId { get; private set; }
-    public static int CurrentLeaderId { get; private set; }
+    public long raftNodeId { get; private set; }
+    public static long CurrentLeaderId { get; private set; }
     public static int Selection_ExpiredTime { get; set; }
     public static int SelectionDuration { get; set; }
     private int _votedForTerm = 0;
 
     public static int Votes { get; private set; }
-    public static int Majority { get; private set; }
+    public static long Majority { get; private set; }
     public static int ProcessId { get; private set; }
     public static DateTime RequestForVotDateTime { get; private set; }
 
@@ -59,15 +59,16 @@ public class RaftNodeActor : ReceiveActor
     private int _selectionDuration = maximumPeriodTimeMillisecond;
     private int _expiredTime = 0;
     private bool _selectionStarted = false;
-    public RaftNodeActor(int _raftNodeId)
+    public RaftNodeActor(long _raftNodeId,long nodeCount)
     {
         IActorRef? mediator = DistributedPubSub.Get(Context.System).Mediator;
         raftNodeId = _raftNodeId;
- 
+        //Log.Warning("** NodeId : " + _raftNodeId + " * *");
+        Majority = (nodeCount + 1) / 2;
         Receive<List<IActorRef>>(rflist =>
         {
             RanfNodeList = rflist;
-            Majority = (RanfNodeList.Count + 1) / 2;
+            Majority = (nodeCount + 1) / 2;
             var mediator = DistributedPubSub.Get(Context.System).Mediator;
             //   Log.Error(raftNodeId.ToString());
         //    Console.Write(raftNodeId + " ");
@@ -85,11 +86,13 @@ public class RaftNodeActor : ReceiveActor
 
         Receive<RequestForVote>(hb =>
         {
+           // Console.Write("######### Node With Id "+ _raftNodeId+ " Being Candid as a Leader");
             if (Sender != Self)
             {
                 Console.Write(".");
             }
-            RequestForVotDateTime = hb.datetime;
+            RequestForVotDateTime = DateTime.Now;
+            _nodesCount = hb.nodecount;
             mediator.Tell(new Publish("voterequest", new VoteRequest(hb.Term, _raftNodeId)));
         });
 
@@ -99,14 +102,14 @@ public class RaftNodeActor : ReceiveActor
             term = vr.Term;
             if (_votedForTerm < vr.Term && Role != Roles.Leader)
             {
-                if (vr.SenderId != raftNodeId)
-                {
-                    Log.Information("{0}", $"Vote request from candidate {vr.SenderId} for term {vr.Term}");
-                }
-                else
-                {
-                    Log.Information("{0}", $"Vote request from self in term {vr.Term}");
-                }
+                //if (vr.SenderId != raftNodeId)
+                //{
+                //    Log.Information("{0}", $"Vote request for candidate {vr.SenderId} for term {vr.Term} from term { vr.Term}");
+                //}
+                //else
+                //{
+                //    Log.Information("{0}", $"Vote request from self in term {vr.Term}");
+                //}
 
                 _votedForTerm = vr.Term;
 
@@ -124,10 +127,11 @@ public class RaftNodeActor : ReceiveActor
         });
         Receive<Vote>(v =>
         {
-            //Log.Information("{0}", "Receive Vote Message, than Reset Wait timeout");
+            // Log.Error($"Receive Vote Message,from {v.SenderId} Votes count: {Votes}/{Majority}");
             //reset
-            stopWait();
-            startWait();
+            //comment for report
+            //stopWait();
+            //startWait();
             //RaftEvents.GotVoteEvent?.Invoke(v.SenderId, v.Term);
             if (term == v.Term)
             {
@@ -135,12 +139,14 @@ public class RaftNodeActor : ReceiveActor
             }
 
             //Log.Information("{0}", $"Got {Votes}/{Majority} votes for term {term} from {v.SenderId}");
-            if (Votes >= Majority)
+            if ( Votes == Majority)
             {
+
                 CurrentLeaderId = raftNodeId;
-                Log.Information("{0}", "************************************************************************************"+ CurrentLeaderId + " Selected!  Time : " +(DateTime.Now-RequestForVotDateTime).TotalSeconds);
+                Console.WriteLine("{0}", "*******************" + CurrentLeaderId + " Selected!  Time : " + (DateTime.Now - RequestForVotDateTime).TotalSeconds);
                 Role = Roles.Leader;
-              
+                Environment.Exit(0);
+                //comment for Report
                 startWait();
                 if (!_heartbeatStarted)
                 {
@@ -150,8 +156,24 @@ public class RaftNodeActor : ReceiveActor
                     TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
                 }
             }
+            if (Votes > Majority)
+            {
 
-        });
+            //CurrentLeaderId = raftNodeId;
+            //Log.Error("{0}", "*******************" + CurrentLeaderId + " Selected!  Time : " + (DateTime.Now - RequestForVotDateTime).TotalSeconds);
+            //Role = Roles.Leader;
+
+            //startWait();
+            //if (!_heartbeatStarted)
+            //{
+            //    _heartbeatStarted = true;
+            //    Log.Information("{0}", " Start heartbeat time ");
+            //    _heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
+            //    TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
+            //}
+        }
+
+    });
 
         Receive<SendHeartbeatResponse>(s =>
         {
@@ -322,7 +344,8 @@ public class RaftNodeActor : ReceiveActor
     {
         var mediator = DistributedPubSub.Get(Context.System).Mediator;
         mediator.Tell(new Subscribe("voterequest", Self));
-        mediator.Tell(new Subscribe("heartbeat", Self));
+        //comment for report
+        //mediator.Tell(new Subscribe("heartbeat", Self));
     }
     private void startWait()
     {

@@ -1,7 +1,8 @@
 ﻿akka {
-	logLevel=DEBUG,
-	  log-dead-letters-during-shutdown = on
-  log-dead-letters = on
+	stdout-loglevel = "OFF"
+	loglevel = "OFF"
+	log-dead-letters-during-shutdown = off
+	log-dead-letters = off
     actor {
 		debug.unhandled = off
 		stdout-loglevel = off
@@ -12,7 +13,12 @@
 		serialization-bindings {
 		  "System.Object" = hyperion
 		}
-    }            
+ 
+		 
+
+    }    
+ 
+		     
     remote {
 		log-received-messages = off
 	    log-sent-messages = off
@@ -27,7 +33,7 @@
     }
 	
     cluster {
-		auto-down-unreachable-after = 10s
+		auto-down-unreachable-after = 1s
 		log-info = off
         seed-nodes = [
         "akka.tcp://raftActorSystem@localhost:5050"]
@@ -35,3 +41,7 @@
     }
 
 }
+custom-dispatcher {
+  type = PinnedDispatcher
+}
+ 

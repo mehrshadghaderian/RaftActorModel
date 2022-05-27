@@ -27,7 +27,7 @@ public class RaftNode
 
    
     static Roles _role;
-    public static Roles Role
+    public  Roles Role
     {
         get { return _role; }
         set
@@ -35,18 +35,18 @@ public class RaftNode
             _role = value;
         }
     }
-    public static int Term { get; private set; }
+    public  int Term { get; private set; }
     public  int raftNodeId { get; private set; } 
     public int Id { get; set; }
-    public static int CurrentLeaderId { get; private set; }
-    public static int Selection_ExpiredTime { get; set; }
-    public static int SelectionDuration { get; set; }
+    public  int CurrentLeaderId { get; private set; }
+    public  int Selection_ExpiredTime { get; set; }
+    public  int SelectionDuration { get; set; }
     private int _votedForTerm = 0;
 
-    public static int Votes { get; private set; }
+    public  int Votes { get; private set; }
     public  int Majority { get; private set; }
-    public static int ProcessId { get; private set; }
-    public static DateTime RequestForVotDateTime { get; private set; }
+    public  int ProcessId { get; private set; }
+    public  DateTime RequestForVotDateTime { get; private set; }
 
     //election property
     private const int timeStepMillisecond = 50;
@@ -75,7 +75,7 @@ public class RaftNode
 
     public void LeaderElection(int electionTerm)
     {
-        Console.WriteLine("Node with Id: "+raftNodeId+" Start Request For Vote"); 
+        //Console.WriteLine("Node with Id: "+raftNodeId+" Start Request For Vote"); 
         raftnodeList.Where(a => a.Id != this.Id).ToList().ForEach(raftNode => {
             raftNode.RequestForVote(new VoteRequest(electionTerm, raftNodeId,DateTime.Now));
         });
@@ -87,18 +87,18 @@ public class RaftNode
     }
     public void RequestForVote(VoteRequest voteRequest)
     { 
-        Console.WriteLine("Node with Id: " + voteRequest.SenderId + " Request For Vote from : " +this.Id);
+        //Console.WriteLine("Node with Id: " + voteRequest.SenderId + " Request For Vote from : " +this.Id);
         bool vote = false;
         this.term = voteRequest.Term;
         if (_votedForTerm < voteRequest.Term && Role != Roles.Leader)
         {
             if (voteRequest.SenderId != this.Id)
             {
-                Log.Information("{0}", $"Vote request from candidate {voteRequest.SenderId} for term {voteRequest.Term}");
+                //Log.Information("{0}", $"Vote request from candidate {voteRequest.SenderId} for term {voteRequest.Term}");
             }
             else
             {
-                Log.Information("{0}", $"Vote request from self in term {voteRequest.Term}");
+                //Log.Information("{0}", $"Vote request from self in term {voteRequest.Term}");
             }
 
             this._votedForTerm = voteRequest.Term;
