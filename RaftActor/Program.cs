@@ -12,7 +12,7 @@ namespace MyNameSpace
     public  class MyClass
     {
 
-        public static long[] nodeCountList = new long[] { 5, 10, 20, 100, 200, 1000, 2000, 5000, 10000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000, 20000000, 40000000, 100000000, 200000000, 400000000, 1000000000, 2000000000, 4000000000, 10000000000 };
+        public static long[] nodeCountList = new long[] { 2, 10, 20, 100, 200, 1000, 2000, 5000, 10000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000, 20000000, 40000000, 100000000, 200000000, 400000000, 1000000000, 2000000000, 4000000000, 10000000000 };
         public static long nodeCount { get; set; }
 
         public static void Main()
@@ -54,7 +54,7 @@ akka.remote.dot-netty.tcp {
             //    NodeManager.CreateActor(actor);
             //}
             Random Dice = new Random();
-            long randomActorId = Dice.NextInt64(nodeCount);
+            long randomActorId = Dice.NextInt64(nodeCount)+1;
             ActorPath? ranomActorPath=null;
             //Parallel.For(0, nodeCount,
             // i => {

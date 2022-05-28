@@ -19,7 +19,7 @@ public class RaftNodeActor : ReceiveActor
     private bool _timeStarted;
     private ICancelable _timerTask;
 
-    private const int heartbeat_periodtimemilisecound = 1000;
+    private const int heartbeat_periodtimemilisecound = 20000;
 
     private bool _joinedCluster;
     private ICancelable _heartbeatTask;
@@ -32,7 +32,7 @@ public class RaftNodeActor : ReceiveActor
     public int Id { get; set; }
     public List<IActorRef> RanfNodeList { get; set; }
     static Roles _role;
-    public static Roles Role
+    public  Roles Role
     {
         get { return _role; }
         set
@@ -40,22 +40,22 @@ public class RaftNodeActor : ReceiveActor
             _role = value;
         }
     }
-    public static int Term { get; private set; }
+    public   int Term { get; private set; }
     public long raftNodeId { get; private set; }
-    public static long CurrentLeaderId { get; private set; }
-    public static int Selection_ExpiredTime { get; set; }
-    public static int SelectionDuration { get; set; }
+    public   long CurrentLeaderId { get; private set; }
+    public   int Selection_ExpiredTime { get; set; }
+    public   int SelectionDuration { get; set; }
     private int _votedForTerm = 0;
 
-    public static int Votes { get; private set; }
-    public static long Majority { get; private set; }
-    public static int ProcessId { get; private set; }
-    public static DateTime RequestForVotDateTime { get; private set; }
+    public   int Votes { get; private set; }
+    public   long Majority { get; private set; }
+    public   int ProcessId { get; private set; }
+    public   DateTime RequestForVotDateTime { get; private set; }
 
     //election property
-    private const int timeStepMillisecond = 50;
-    private const int minmunPeriodTimeMillisecond = 5000;
-    private const int maximumPeriodTimeMillisecond = 10000;
+    private const int timeStepMillisecond = 50000;
+    private const int minmunPeriodTimeMillisecond = 500000;
+    private const int maximumPeriodTimeMillisecond = 1000000;
     private int _selectionDuration = maximumPeriodTimeMillisecond;
     private int _expiredTime = 0;
     private bool _selectionStarted = false;
@@ -86,7 +86,9 @@ public class RaftNodeActor : ReceiveActor
 
         Receive<RequestForVote>(hb =>
         {
-           // Console.Write("######### Node With Id "+ _raftNodeId+ " Being Candid as a Leader");
+            term++;
+            Role = Roles.Candidate;
+            // Console.Write("######### Node With Id "+ _raftNodeId+ " Being Candid as a Leader");
             if (Sender != Self)
             {
                 Console.Write(".");
@@ -98,40 +100,44 @@ public class RaftNodeActor : ReceiveActor
 
         Receive<VoteRequest>(vr =>
         {
-            bool vote = false;
-            term = vr.Term;
-            if (_votedForTerm < vr.Term && Role != Roles.Leader)
+            if(Self.Path.Name != Sender.Path.Name)
             {
-                //if (vr.SenderId != raftNodeId)
-                //{
-                //    Log.Information("{0}", $"Vote request for candidate {vr.SenderId} for term {vr.Term} from term { vr.Term}");
-                //}
-                //else
-                //{
-                //    Log.Information("{0}", $"Vote request from self in term {vr.Term}");
-                //}
-
-                _votedForTerm = vr.Term;
-
-                vote = true;
+                Role = Roles.Follower;
+                bool vote = false;
+                term = vr.Term;
+                if (_votedForTerm < vr.Term && Role != Roles.Leader)
+                {
+                    //if (vr.SenderId != raftNodeId)
+                    //{
+                    //    Log.Information("{0}", $"Vote request for candidate {vr.SenderId} for term {vr.Term} from term { vr.Term}");
+                    //}
+                    //else
+                    //{
+                    //    Log.Information("{0}", $"Vote request from self in term {vr.Term}");
+                    //} 
+                    _votedForTerm = vr.Term;
+                    vote = true;
+                }
+                else
+                {
+                    //Log.Information("{0}", $"Not voting. {vr.SenderId} asking for term {vr.Term}, last voted for {_votedForTerm} and state is {Role.ToString()}");
+                    vote = false;
+                }
+                if (vote)
+                {
+                    Sender.Tell(new Vote(vr.Term, raftNodeId));
+                }
             }
-            else
-            {
-                //Log.Information("{0}", $"Not voting. {vr.SenderId} asking for term {vr.Term}, last voted for {_votedForTerm} and state is {Role.ToString()}");
-                vote = false;
-            }
-            if (vote)
-            {
-                Sender.Tell(new Vote(vr.Term, raftNodeId));
-            }
+    
         });
         Receive<Vote>(v =>
         {
+            Console.WriteLine("Candid : " + Self.Path.Name);
             // Log.Error($"Receive Vote Message,from {v.SenderId} Votes count: {Votes}/{Majority}");
             //reset
             //comment for report
-            //stopWait();
-            //startWait();
+            stopWait();
+            startWait();
             //RaftEvents.GotVoteEvent?.Invoke(v.SenderId, v.Term);
             if (term == v.Term)
             {
@@ -139,15 +145,15 @@ public class RaftNodeActor : ReceiveActor
             }
 
             //Log.Information("{0}", $"Got {Votes}/{Majority} votes for term {term} from {v.SenderId}");
-            if ( Votes == Majority)
+            if ( Votes >= Majority)
             {
 
                 CurrentLeaderId = raftNodeId;
                 Console.WriteLine("{0}", "*******************" + CurrentLeaderId + " Selected!  Time : " + (DateTime.Now - RequestForVotDateTime).TotalSeconds);
                 Role = Roles.Leader;
-                Environment.Exit(0);
+                //Environment.Exit(0);
                 //comment for Report
-                startWait();
+                //startWait();
                 if (!_heartbeatStarted)
                 {
                     _heartbeatStarted = true;
@@ -187,7 +193,7 @@ public class RaftNodeActor : ReceiveActor
 
         Receive<SendHeartbeat>(send =>
         {
-           // Console.Write(">");
+             Console.WriteLine(">");
             // RaftNode.LogIndex = 1;
             mediator.Tell(new Publish("heartbeat", new Heartbeat(term, 1, _raftNodeId)));
         });
@@ -195,7 +201,7 @@ public class RaftNodeActor : ReceiveActor
         {
             if (Sender != Self)
             {
-              //  Console.Write(".");
+                Console.Write("Leader: " + Sender.Path.Name+ " follower: "+Self.Path.Name+" ** ");
                 //   RaftEvents.HeartbeatEvent?.Invoke(Sender.Path.ToString(), hb);
 
 
@@ -245,28 +251,28 @@ public class RaftNodeActor : ReceiveActor
                 //  RaftEvents.HeartbeatEventResponse?.Invoke(hbr);
             }
         });
-        Receive<RunHeartbeat>(s =>
-        {
-            if (s.Start)
-            {
-                if (!_heartbeatStarted)
-                {
-                    _heartbeatStarted = true;
-                    Log.Information("{0}", " Start heartbeat time ");
-                    _heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
-                    TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
-                }
-            }
-            else
-            {
-                if (_heartbeatStarted)
-                {
-                    _heartbeatStarted = false;
-                    Log.Information("{0}", "Stop heartbeat time ");
-                    _heartbeatTask?.Cancel();
-                }
-            }
-        });
+        //Receive<RunHeartbeat>(s =>
+        //{
+        //    if (s.Start)
+        //    {
+        //        if (!_heartbeatStarted)
+        //        {
+        //            _heartbeatStarted = true;
+        //            Log.Information("{0}", " Start heartbeat time ");
+        //            _heartbeatTask = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromMilliseconds(20),
+        //            TimeSpan.FromMilliseconds(heartbeat_periodtimemilisecound), Context.Self, new SendHeartbeat(), ActorRefs.NoSender);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (_heartbeatStarted)
+        //        {
+        //            _heartbeatStarted = false;
+        //            Log.Information("{0}", "Stop heartbeat time ");
+        //            _heartbeatTask?.Cancel();
+        //        }
+        //    }
+        //});
         Receive<StopTimeout>(v =>
         {
             if (_timeStarted)
@@ -345,7 +351,7 @@ public class RaftNodeActor : ReceiveActor
         var mediator = DistributedPubSub.Get(Context.System).Mediator;
         mediator.Tell(new Subscribe("voterequest", Self));
         //comment for report
-        //mediator.Tell(new Subscribe("heartbeat", Self));
+        mediator.Tell(new Subscribe("heartbeat", Self));
     }
     private void startWait()
     {
