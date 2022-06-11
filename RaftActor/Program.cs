@@ -56,33 +56,34 @@ akka.remote.dot-netty.tcp {
             Random Dice = new Random();
             long randomActorId = Dice.NextInt64(nodeCount)+1;
             ActorPath? ranomActorPath=null;
-            //Parallel.For(0, nodeCount,
-            // i => {
-            //     var actor = system.ActorOf(Props.Create(() => new RaftNodeActor(i, nodeCount)),i.ToString()); 
-            //     if(randomActorId== i)
-            //     ranomActorPath = actor.Path;
-            //     // NodeManager.CreateActor(system.ActorOf<RaftNodeActor>("rafnode" + index));
-            //     // NodeManager.CreateActor(actor);
-            // });
-            for (int i = 1; i <= nodeCount; i++)
-            {
-                var actor = system.ActorOf(Props.Create(() => new RaftNodeActor(i, nodeCount)), i.ToString());
-                if (randomActorId == i)
-                    ranomActorPath = actor.Path;
-            }
-            // intrduce Actors Together 
-            //Parallel.ForEach(NodeManager.GetActorList(), actor =>
-            //{
-            //    actor.Tell(NodeManager.GetActorList());
-            //    //actor.Tell(new Welecome(1,""));
-            //});
-            //foreach (var actor in NodeManager.GetActorList())
-            //{
-            //    actor.Tell(new RequestForVote(1));
-            //} 
-            var randomActor = system.ActorSelection(ranomActorPath);
+         
+            Parallel.For(0, nodeCount,
+             i =>
+             {
+                 var actor = system.ActorOf(Props.Create(() => new RaftNodeActor(i, nodeCount)), i.ToString());
+                 if (randomActorId == i)
+                     ranomActorPath = actor.Path;
+             });
+
+            ActorSelection? randomActor = system.ActorSelection(ranomActorPath);
             randomActor.Tell(new RequestForVote(1,DateTime.Now,nodeCount));
-            Console.ReadLine();
+            string key = Console.ReadLine();
+            if (key == "kk")
+            {
+                randomActor.Tell(new KillMessage());
+                GetEntry(randomActor);
+            }
+            else GetEntry(randomActor); 
+        }
+        public static void GetEntry(ActorSelection?  randomActor)
+        {
+            string key = Console.ReadLine();
+            if (key == "kk")
+            {
+                randomActor.Tell(new KillMessage());
+                GetEntry(randomActor);
+            }
+            else GetEntry(randomActor);
         }
     }
     

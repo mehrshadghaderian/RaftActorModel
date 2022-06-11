@@ -12,11 +12,12 @@ public class Actor_Candidate : ReceiveActor
     {
         var mediator = DistributedPubSub.Get(Context.System).Mediator;
 
-        Receive<RequestForVote  >(a => {
+        Receive<RequestForVote>(a => {
             Log.Information("{0}", "Receive Request for votes Message");
             mediator.Tell(new Publish("voterequest", new VoteRequest(a.Term, RaftNode.ClusterUid)));
         });
-
+     
+        
         Receive<Vote>(v => {
             Log.Information("{0}", "Receive Vote Message, than Reset Wait timeout");
             //reset

@@ -10,6 +10,8 @@
         nodecount = _nodecount;
     }
 }
+public class KillMessage { }
+    
 public class StartWaitForVote
 {
     public bool Start { get; private set; }
