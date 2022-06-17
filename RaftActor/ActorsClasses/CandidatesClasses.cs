@@ -10,8 +10,31 @@
         nodecount = _nodecount;
     }
 }
-public class KillMessage { }
-    
+public enum NodeType
+{
+    Follower = 0,
+    Candidate = 1,
+    Leader = 2,
+    Deputy=3
+}
+public class KillMessage
+{
+    public bool FirstRequest { get; private set; } = true;
+    public NodeType NodeType { get; private set; } = NodeType.Leader;
+
+    public KillMessage(bool? firstRequest, NodeType? nodeType)
+    {
+        FirstRequest = firstRequest.HasValue ? firstRequest.Value : true;
+        NodeType = nodeType.HasValue? nodeType.Value:NodeType.Leader;
+    }
+}
+public class IamDeputy { }
+public class ChangeDeputy { }
+public class SelectDeputyReplay { }
+public class SelectDeputy { }
+
+
+
 public class StartWaitForVote
 {
     public bool Start { get; private set; }

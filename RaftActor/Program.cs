@@ -54,7 +54,7 @@ akka.remote.dot-netty.tcp {
             //    NodeManager.CreateActor(actor);
             //}
             Random Dice = new Random();
-            long randomActorId = Dice.NextInt64(nodeCount)+1;
+            long randomActorId = Dice.NextInt64(nodeCount);
             ActorPath? ranomActorPath=null;
          
             Parallel.For(0, nodeCount,
@@ -68,19 +68,19 @@ akka.remote.dot-netty.tcp {
             ActorSelection? randomActor = system.ActorSelection(ranomActorPath);
             randomActor.Tell(new RequestForVote(1,DateTime.Now,nodeCount));
             string key = Console.ReadLine();
-            if (key == "kk")
-            {
-                randomActor.Tell(new KillMessage());
-                GetEntry(randomActor);
-            }
-            else GetEntry(randomActor); 
+             GetEntry(randomActor); 
         }
         public static void GetEntry(ActorSelection?  randomActor)
         {
             string key = Console.ReadLine();
-            if (key == "kk")
+            if (key == "k1")
             {
-                randomActor.Tell(new KillMessage());
+                randomActor.Tell(new KillMessage(true, NodeType.Leader));
+                GetEntry(randomActor);
+            }
+            else if (key == "k2")
+            {
+                randomActor.Tell(new KillMessage(true, NodeType.Deputy));
                 GetEntry(randomActor);
             }
             else GetEntry(randomActor);
