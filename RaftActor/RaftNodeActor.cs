@@ -105,14 +105,30 @@ public class RaftNodeActor : ReceiveActor
 
         });
         Receive<KillMessage>(a => {
-           if (a.NodeType== NodeType.Deputy)
+            if (a.FirstRequest && a.NodeType == NodeType.All)
             {
+
+                Log.Information("{0}", "Kill Leader Id : "+ CurrentLeaderId + " And Deputy Id :"+ CurrentDeputyId + "");
+                CurrentDeputyId = "";
+                CurrentLeaderId = -1;
+                if (CurrentDeputyId != "")
+                {
+                    Log.Error("Current Deputy {0} Change To leader", CurrentDeputyId);
+                    ActorSelection? deputyActor = Context.ActorSelection("/user/" + CurrentDeputyId);
+                    deputyActor.Tell(new RequestForVote(term, DateTime.Now, _nodesCount));
+                }
+                mediator.Tell(new Publish("heartbeat", new KillMessage(false, NodeType.Leader)));
+            }
+            else  if (a.NodeType== NodeType.Deputy)
+            {
+                Log.Information("{0}", "Kill Deputy Id : "+ CurrentDeputyId);
                 CurrentDeputyId = "";
             }
            else  if(a.FirstRequest)
             {
+              
+                Log.Information("{0}", "Kill Leader Id : "+ CurrentLeaderId);
                 CurrentLeaderId = -1;
-                Log.Information("{0}", "Receive KillRequest");
                 if (CurrentDeputyId != "")
                 {
                     Log.Error("Current Deputy {0} Change To leader", CurrentDeputyId); 
@@ -221,13 +237,13 @@ public class RaftNodeActor : ReceiveActor
         });
         Receive<ChangeDeputy>(hb =>
         {
-            CurrentDeputyId = "";
+  
             mediator.Tell(new Publish("selectdeputy", new SelectDeputy()));
         });
         Receive<SelectDeputy>(hb =>
         {
             //  اگر قائم مقامی انتخاب نشده بود درخواست قامئم مقامی ارسال شود
-            if (Self != Sender && CurrentDeputyId!="")
+            if (Self != Sender && CurrentDeputyId=="")
             {
                 Sender.Tell(new SelectDeputyReplay());
             }
@@ -239,7 +255,7 @@ public class RaftNodeActor : ReceiveActor
                 if(CurrentDeputyId =="")
                 {
                     CurrentDeputyId = Sender.Path.Name;
-                    Log.Error("node With Id: " + CurrentDeputyId + "select as Deputy");
+                    Log.Error("node With Id: " + CurrentDeputyId + " Select as Deputy");
                 }
             }
         });

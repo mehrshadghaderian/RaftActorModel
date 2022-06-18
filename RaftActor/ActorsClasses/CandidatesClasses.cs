@@ -15,7 +15,8 @@ public enum NodeType
     Follower = 0,
     Candidate = 1,
     Leader = 2,
-    Deputy=3
+    Deputy = 3,
+    All = 4
 }
 public class KillMessage
 {

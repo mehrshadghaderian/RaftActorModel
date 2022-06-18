@@ -36,7 +36,8 @@ akka.remote.dot-netty.tcp {
 	log-dead-letters = off
 }");
             Console.WriteLine("Select Node Count 0=5:1=10,2=20,3=100,4=200, 5=1000, 6=2000, 7=5000, 8=10000, 9=50000, 10=100000, 11=200000, 12=500000, 13=1000000, 14=2000000,15 =5000000, 16=10000000, 17=20000000,18=400000000,19=1000000000,20=2000000000,21=4000000000,22=10000000000}");
-            int arrayindex = Convert.ToInt16(Console.ReadLine());
+            Console.WriteLine("k1= kill leader *** k2=kill Deputy *** k3=kill Deputy and Leader");
+         int arrayindex = Convert.ToInt16(Console.ReadLine());
             nodeCount = nodeCountList[arrayindex];
             Console.WriteLine($"node count = {nodeCount}");
             var system = ActorSystem.Create("raftActorSystem", hocanConfig);
@@ -81,6 +82,11 @@ akka.remote.dot-netty.tcp {
             else if (key == "k2")
             {
                 randomActor.Tell(new KillMessage(true, NodeType.Deputy));
+                GetEntry(randomActor);
+            }
+            else if (key == "k3")
+            {
+                randomActor.Tell(new KillMessage(true, NodeType.All));
                 GetEntry(randomActor);
             }
             else GetEntry(randomActor);
